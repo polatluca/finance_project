@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction Details{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>Transaction Details</h2>
+    <a href="{% url 'pocket_transactions' transaction.pocket.id %}" class="btn btn-secondary mb-3">Back to Transactions</a>
+
+    <form method="post" action="{% url 'transaction_detail' transaction.id %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="transactionTitle" class="form-label">Title</label>
+            <input type="text" class="form-control" id="transactionTitle" name="title" value="{{ transaction.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="transactionAmount" class="form-label">Amount</label>
+            <input type="number" class="form-control" id="transactionAmount" name="amount" step="0.01" value="{{ transaction.amount }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="transactionCategory" class="form-label">Category</label>
+            <select class="form-select" id="transactionCategory" name="category">
+                <option value="">Uncategorized</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if transaction.category and transaction.category.id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <input type="text" class="form-control mt-2" id="newCategory" name="new_category" placeholder="Or enter a new category">
+        </div>
+        <div class="mb-3">
+            <label for="transactionDate" class="form-label">Date</label>
+            <input type="date" class="form-control" id="transactionDate" name="create_date" value="{{ transaction.create_date|date:'Y-m-d' }}" required>
+        </div>
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="recurringCheck" name="payment_recurring" {% if transaction.payment_recurring %}checked{% endif %}>
+            <label class="form-check-label" for="recurringCheck">Recurring Payment</label>
+        </div>
+
+        <!-- Recurring Payment Fields -->
+        <div id="recurringFields" style="display: {% if transaction.payment_recurring %}block{% else %}none{% endif %};">
+            <div class="mb-3">
+                <label for="frequency" class="form-label">Frequency</label>
+                <select class="form-select" id="frequency" name="frequency">
+                    <option value="daily" {% if transaction.frequency == 'daily' %}selected{% endif %}>Daily</option>
+                    <option value="weekly" {% if transaction.frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+                    <option value="monthly" {% if transaction.frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="recurringDate" class="form-label">Recurring Until</label>
+                <input type="date" class="form-control" id="recurringDate" name="recurring_date" value="{{ transaction.recurring_date|date:'Y-m-d' }}">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+    </form>
+</div>
+
+<script>
+    // Toggle recurring payment fields
+    document.getElementById('recurringCheck').addEventListener('change', function () {
+        const recurringFields = document.getElementById('recurringFields');
+        if (this.checked) {
+            recurringFields.style.display = 'block';
+        } else {
+            recurringFields.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

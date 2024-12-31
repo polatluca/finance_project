@@ -1,0 +1,294 @@
+{% extends "base.html" %} 
+{% block title %}Transactions for {{ pocket.name }}
+
+{% endblock %} 
+
+{% block content %}
+<div class="container my-5">
+  <h2>Transactions for {{ pocket.name }}</h2>
+  <p>Start Credit: {{ pocket.start_credit }}</p>
+  <a href="/" class="btn btn-secondary mb-3">Back to Pockets</a>
+
+  <!-- Button to trigger the modal -->
+  <button
+    class="btn btn-success mb-3"
+    data-bs-toggle="modal"
+    data-bs-target="#createTransactionModal"
+  >
+    Add Transaction
+  </button>
+
+  {% if transactions.exists %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Title</th>
+        <th>Amount</th>
+        <th>Category</th>
+        <th>Recurring</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for transaction in transactions %}
+      <tr>
+        <td>
+          <a href="{% url 'transaction_detail' transaction.id %}"
+            >{{ transaction.create_date }}</a
+          >
+        </td>
+        <td>
+          <a href="{% url 'transaction_detail' transaction.id %}"
+            >{{ transaction.title }}</a
+          >
+        </td>
+        <td>{{ transaction.amount }}</td>
+        <td>
+            {% if transaction.categories.exists %}
+              {% for category in transaction.categories.all %}
+                {{ category.name }}
+                {% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}
+              Uncategorized
+            {% endif %}
+          </td>
+          
+        <td>{{ transaction.payment_recurring|yesno:"Yes,No" }}</td>
+        <td> <a href="{% url 'app_delete_transaction_page' transaction.id %}" class="btn btn-danger">Delete</a> </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-warning">No transactions found for this pocket.</div>
+  {% endif %}
+</div>
+
+<!-- Modal for Creating a Transaction -->
+<div
+  class="modal fade"
+  id="createTransactionModal"
+  tabindex="-1"
+  aria-labelledby="createTransactionModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createTransactionModalLabel">
+          Create New Transaction
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form
+          id="createTransactionForm"
+          method="post"
+          action="{% url 'create_transaction' pocket.id %}"
+        >
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="transactionTitle" class="form-label">Title</label>
+            <input
+              type="text"
+              class="form-control"
+              id="transactionTitle"
+              name="title"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="transactionAmount" class="form-label">Amount</label>
+            <input
+              type="number"
+              class="form-control"
+              id="transactionAmount"
+              name="amount"
+              step="0.01"
+              required
+            />
+          </div>
+
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+          <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+          
+          <div class="mb-3">
+            <label for="categoryInput" class="form-label">Category</label>
+            <input
+              id="categoryInput"
+              name="categories"
+              placeholder="Type or select categories..."
+              value=""
+            />
+            <small class="text-muted"
+              >Start typing to select or create a new category.</small
+            >
+          </div>
+          
+      
+
+          <div class="mb-3">
+            <label for="paymentRecurring" class="form-label"
+              >Recurring Payment</label
+            >
+            <select
+              class="form-control"
+              id="paymentRecurring"
+              name="payment_recurring"
+              onchange="toggleRecurringFields()"
+            >
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div>
+
+          <div id="recurringFields" style="display: none">
+            <div class="mb-3">
+              <label for="frequency" class="form-label">Frequency</label>
+              <select class="form-control" id="frequency" name="frequency">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="recurringDate" class="form-label"
+                >Recurring Until</label
+              >
+              <input
+                type="date"
+                class="form-control"
+                id="recurringDate"
+                name="recurring_date"
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Create</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block script %}
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script>
+    // 1) Prepare data so "value" = category name (shown to user), "id" = numeric ID
+    const categories = [
+      {% for category in categories %}
+        { id: "{{ category.id }}", value: "{{ category.name }}" },
+      {% endfor %}
+    ];
+  
+    // 2) Initialize Tagify
+    const input = document.querySelector("#categoryInput");
+    const tagify = new Tagify(input, {
+      whitelist: categories,
+      enforceWhitelist: false, // Let user add new categories
+      dropdown: {
+        enabled: 0,
+        maxItems: 5,
+        closeOnSelect: false,
+      },
+      /**
+       * 3) Transform the final data for the backend:
+       *    - Existing categories => { value: <id>, name: <name> }
+       *    - New categories => { name: <name> }
+       */
+      originalInputValueFormat: (valuesArr) => {
+        return JSON.stringify(
+          valuesArr.map((item) => {
+            if (item.id) {
+              // Existing category from whitelist
+              return { value: item.id, name: item.value };
+            } else {
+              // User typed a new category
+              return { name: item.value };
+            }
+          })
+        );
+      },
+    });
+  
+    // (Optional) Debug the final Tagify data:
+    input.addEventListener("change", () => {
+      console.log("Tagify Data:", tagify.value);
+    });
+  </script>
+<script>
+  function toggleDropdown() {
+    document.getElementById("categoryDropdown").classList.toggle("show");
+  }
+
+  function filterCategories() {
+    const input = document.getElementById("categorySearch");
+    const filter = input.value.toUpperCase();
+    const div = document.getElementById("categoryDropdown");
+    const a = div.getElementsByTagName("a");
+    for (let i = 0; i < a.length; i++) {
+      const txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
+
+  function selectCategory(id, name) {
+    document.getElementById("selectedCategoryId").value = id;
+    document.getElementById("selectedCategoryName").textContent =
+      "Selected Category: " + name;
+    toggleDropdown(); // Close the dropdown
+  }
+
+function addNewCategory() {
+  const newCategoryName = document
+    .getElementById("categorySearch")
+    .value.trim();
+  if (newCategoryName) {
+    // Mark it as a new category
+    document.getElementById("selectedCategoryId").value = `new:${newCategoryName}`;
+    document.getElementById("selectedCategoryName").textContent =
+      "Selected Category: " + newCategoryName;
+    toggleDropdown(); // Close the dropdown
+  } else {
+    alert("Please enter a valid category name.");
+  }
+}
+
+
+  function toggleRecurringFields() {
+    const recurring =
+      document.getElementById("paymentRecurring").value === "true";
+    document.getElementById("recurringFields").style.display = recurring
+      ? "block"
+      : "none";
+  }
+</script>
+
+<script>
+  // Toggle recurring payment fields
+  document
+    .getElementById("recurringCheck")
+    .addEventListener("change", function () {
+      const recurringFields = document.getElementById("recurringFields");
+      if (this.checked) {
+        recurringFields.style.display = "block";
+      } else {
+        recurringFields.style.display = "none";
+      }
+    });
+</script>
+
+{% endblock %}

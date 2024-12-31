@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <h1 class="my-5">Welcome to Finance Manager</h1>
+    {% if pockets.exists %}
+        <div>
+            <h2>Your Pockets</h2>
+            <div class="row row-cols-1 row-cols-md-3 g-4 my-4">
+                {% for pocket in pockets %}
+                    <div class="col">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ pocket.name }}</h5>
+                                <p class="card-text">Start Credit: {{ pocket.start_credit }}</p>
+                                <a href="{% url 'pocket_transactions' pocket.id %}" class="btn btn-primary">View Transactions</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#createPocketModal">Create New Pocket</button>
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            <h4 class="alert-heading">No Pockets Found</h4>
+            <p>You need to create a Pocket to get started!</p>
+        </div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPocketModal">Create a Pocket</button>
+    {% endif %}
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createPocketModal" tabindex="-1" aria-labelledby="createPocketModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createPocketModalLabel">Create New Pocket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createPocketForm" method="post" action="{% url 'create_pocket' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="pocketName" class="form-label">Pocket Name</label>
+                        <input type="text" class="form-control" id="pocketName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="startCredit" class="form-label">Start Credit</label>
+                        <input type="number" class="form-control" id="startCredit" name="start_credit" step="0.01">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
