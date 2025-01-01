@@ -54,10 +54,12 @@ def pocket_transactions(request, pocket_id):
     pocket = get_object_or_404(Pocket, id=pocket_id, user=request.user)
     transactions = Transaction.objects.filter(pocket=pocket).order_by('-create_date')
     categories = Category.objects.filter(user=request.user)
+    pockets = Pocket.objects.filter(user=request.user)
     return render(request, 'pocket_transactions.html', {
         'pocket': pocket, 
         'transactions': transactions,
         'categories':categories,
+        'pockets':pockets,
         })
 
 @login_required(login_url='login')
@@ -86,7 +88,13 @@ def delete_transaction(request,transaction_id):
 
     if user == pocket_user:
         messages.success(request, "Transaction deleted successfully!")
-        pocket.start_credit = pocket.start_credit + transaction.amount 
+        if transaction.type == 'transfer':
+            pocket.start_credit = pocket.start_credit + transaction.amount 
+        if transaction.type == 'spend':
+            pocket.start_credit = pocket.start_credit + transaction.amount 
+        if transaction.type == 'income':
+            pocket.start_credit = pocket.start_credit - transaction.amount 
+                  
         pocket.save()
         transaction.delete()
         return redirect('pocket_transactions', pocket_id=pocket.id)
@@ -105,10 +113,13 @@ def create_transaction(request, pocket_id):
         payment_recurring = request.POST.get('payment_recurring') == "true"
         frequency = request.POST.get('frequency') if payment_recurring else None
         recurring_date = request.POST.get('recurring_date') if payment_recurring else None
+        payment_type = request.POST.get('type')
+        transfer_to = int(request.POST.get('transfer_to') )if payment_type == 'transfer' else None
 
-        print('frequency' ,frequency)
-        print('payment_recurring' ,payment_recurring)
-        print('recurring_date' ,recurring_date)
+        # actuell_payment_date = request.POST.get('actuell_payment_date')
+        # file = request.POST.get('file')
+        print('payment_type' ,payment_type)
+        print('transfer_to' ,transfer_to)
         category_objs = []
         try:
             categories_list = json.loads(raw_categories)  # parse JSON
@@ -135,6 +146,7 @@ def create_transaction(request, pocket_id):
         # Create Transaction
         try:
             transaction = Transaction.objects.create(
+                type =payment_type,
                 pocket=pocket,
                 title=title,
                 amount=amount,
@@ -145,8 +157,28 @@ def create_transaction(request, pocket_id):
             # ManyToMany: link all categories
             if category_objs != None and len(category_objs)!=0:
                 transaction.categories.set(category_objs)
-            pocket.start_credit -= amount
-            pocket.save()
+  
+            if payment_type == 'transfer':
+                pocket_transferd_to = get_object_or_404(Pocket, id=transfer_to, user=request.user)
+                transfer_transaction = Transaction.objects.create(
+                    type = 'income',
+                    title = f'From Pocket {pocket.name}',
+                    amount = amount,
+                    pocket = pocket_transferd_to
+                )
+                transfer_transaction.save()
+                pocket.start_credit -= amount
+                pocket.save()
+                pocket_transferd_to.start_credit = pocket_transferd_to.start_credit + amount
+                pocket_transferd_to.save()
+            if payment_type == 'income':
+                pocket.start_credit += amount
+                pocket.save()
+        
+            if payment_type == 'spend':
+                pocket.start_credit -= amount
+                pocket.save()
+        
         except Exception as e:
             print(e)
         # If needed, update pocket credit
@@ -157,58 +189,6 @@ def create_transaction(request, pocket_id):
 
     return redirect("pocket_transactions", pocket_id=pocket_id)
 
-# @login_required
-# def create_transaction(request, pocket_id):
-#     pocket = get_object_or_404(Pocket, id=pocket_id, user=request.user)
-#     if request.method == "POST":
-#         title = request.POST.get('title')
-#         amount = float(request.POST.get('amount'))
-#         categories_input = request.POST.get('categories')  # JSON string from Tagify
-#         create_date = request.POST.get('create_date')
-#         payment_recurring = request.POST.get('payment_recurring') == "on"
-#         frequency = request.POST.get('frequency') if payment_recurring else None
-#         recurring_date = request.POST.get('recurring_date') if payment_recurring else None
-
-#         # Parse categories from JSON
-#         categories = json.loads(categories_input)
-#         print(categories)
-
-#         category_objects = []
-#         for category in categories:
-#             if 'value' in category and category['value'].isdigit():
-#                 # Existing category (value is numeric ID)
-#                 cat = Category.objects.filter(id=category['value'], user=request.user).first()
-#                 if cat:
-#                     category_objects.append(cat)
-#             elif 'name' in category:
-#                 # New category (create it)
-#                 cat, created = Category.objects.get_or_create(
-#                     name=category['name'],
-#                     user=request.user
-#                 )
-#                 category_objects.append(cat)
-
-#         # Create the transaction
-#         transaction = Transaction.objects.create(
-#             pocket=pocket,
-#             title=title,
-#             amount=amount,
-#             create_date=create_date,
-#             payment_recurring=payment_recurring,
-#             frequency=frequency,
-#             recurring_date=recurring_date,
-#         )
-#         # Add categories to the transaction
-#         transaction.categories.set(category_objects)
-
-#         # Update the pocket's credit
-#         pocket.start_credit -= amount
-#         pocket.save()
-
-#         messages.success(request, "Transaction created successfully!")
-#         return redirect('pocket_transactions', pocket_id=pocket_id)
-#     else:
-#         return redirect('pocket_transactions', pocket_id=pocket_id)
 
 @login_required
 def transaction_detail(request, transaction_id):
