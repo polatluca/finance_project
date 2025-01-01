@@ -31,13 +31,14 @@ class Transaction(models.Model):
                                      ('monthly', 'Monthly')
                                     ],
                                     blank=True,null=True)
-    # type = models.CharField(max_length=20, 
-    #                                 choices=[
-    #                                     ('daily', 'Daily'), 
-    #                                     ('weekly', 'Weekly'), 
-    #                                     ('monthly', 'Transfar')
-    #                                     ],
-    #                                     blank=True,null=True)
+    type = models.CharField(max_length=20, 
+                                    choices=[
+                                        ('spend', 'Spend'), 
+                                        ('transfer', 'Transfer'), 
+                                        ('income', 'Income')
+                                        ],
+                                        blank=True,null=True)
+    transfer_to = models.OneToOneField(Pocket, related_name='transfer_to_pocket',on_delete=models.CASCADE,null=True,blank=True)
     recurring_date = models.DateField(blank=True,null=True)# bis wann wiederkehrend zahlung
     categories = models.ManyToManyField(Category, blank=True)  # Allow multiple categories
 
