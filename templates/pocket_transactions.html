@@ -95,6 +95,33 @@
         >
           {% csrf_token %}
 
+
+          <div id="typeFields" style="display: block">
+            <div class="mb-3">
+              <label for="type" class="form-label"> Transaction type</label>
+              <select class="form-control" id="type" name="type">
+                <option value="spend">Spend</option>
+                <option value="income">Income</option>
+                <option value="transfer">Transfer</option>
+              </select>
+            </div>
+          </div>
+          
+
+
+          <div id="transfer_toFields" style="display: block">
+            <div class="mb-3">
+              <label for="transfer_to" class="form-label"> Transfer to </label>
+              <select class="form-control" id="transfer_to" name="transfer_to">
+                {% for pocket_x in pockets %}
+                  {% if pocket.id != pocket_x.id %}
+                    <option value="{{ pocket_x.id }}"> {{ pocket_x.name }} </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
           <div class="mb-3">
             <label for="transactionTitle" class="form-label">Title</label>
             <input
