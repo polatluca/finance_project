@@ -1,0 +1,38 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-added-large-files
+        args: ["--maxkb=10000"]
+      - id: check-docstring-first
+      - id: check-json
+      - id: check-yaml
+      - id: end-of-file-fixer
+
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+        args: [--config=pyproject.toml]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: [--ignore=E501]
+        additional_dependencies:
+          - flake8-black>=0.1.1
+
+  - repo: https://github.com/myint/autoflake
+    rev: v2.0.1
+    hooks:
+      - id: autoflake
+        args: [--in-place, --remove-all-unused-imports]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        files: "\\.(py)$"
+        args: [--settings-path=pyproject.toml]

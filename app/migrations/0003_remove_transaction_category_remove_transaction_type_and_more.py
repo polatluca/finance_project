@@ -4,23 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('app', '0002_category_user_transaction_type'),
+        ("app", "0002_category_user_transaction_type"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='transaction',
-            name='category',
+            model_name="transaction",
+            name="category",
         ),
         migrations.RemoveField(
-            model_name='transaction',
-            name='type',
+            model_name="transaction",
+            name="type",
         ),
         migrations.AddField(
-            model_name='transaction',
-            name='categories',
-            field=models.ManyToManyField(blank=True, to='app.category'),
+            model_name="transaction",
+            name="categories",
+            field=models.ManyToManyField(blank=True, to="app.category"),
         ),
     ]

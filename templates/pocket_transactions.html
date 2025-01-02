@@ -1,7 +1,7 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% block title %}Transactions for {{ pocket.name }}
 
-{% endblock %} 
+{% endblock %}
 
 {% block content %}
 <div class="container my-5">
@@ -54,7 +54,7 @@
               Uncategorized
             {% endif %}
           </td>
-          
+
         <td>{{ transaction.payment_recurring|yesno:"Yes,No" }}</td>
         <td> <a href="{% url 'app_delete_transaction_page' transaction.id %}" class="btn btn-danger">Delete</a> </td>
       </tr>
@@ -106,7 +106,7 @@
               </select>
             </div>
           </div>
-          
+
 
 
           <div id="transfer_toFields" style="display: block">
@@ -121,7 +121,7 @@
               </select>
             </div>
           </div>
-          
+
           <div class="mb-3">
             <label for="transactionTitle" class="form-label">Title</label>
             <input
@@ -147,7 +147,7 @@
 
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
           <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
-          
+
           <div class="mb-3">
             <label for="categoryInput" class="form-label">Category</label>
             <input
@@ -160,8 +160,8 @@
               >Start typing to select or create a new category.</small
             >
           </div>
-          
-      
+
+
 
           <div class="mb-3">
             <label for="paymentRecurring" class="form-label"
@@ -216,7 +216,7 @@
         { id: "{{ category.id }}", value: "{{ category.name }}" },
       {% endfor %}
     ];
-  
+
     // 2) Initialize Tagify
     const input = document.querySelector("#categoryInput");
     const tagify = new Tagify(input, {
@@ -246,7 +246,7 @@
         );
       },
     });
-  
+
     // (Optional) Debug the final Tagify data:
     input.addEventListener("change", () => {
       console.log("Tagify Data:", tagify.value);

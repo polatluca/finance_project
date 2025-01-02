@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,36 +14,75 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(blank=True, max_length=100, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(blank=True, max_length=100, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Pocket',
+            name="Pocket",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('start_credit', models.FloatField(default=0.0)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("start_credit", models.FloatField(default=0.0)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Transaction',
+            name="Transaction",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('create_date', models.DateField(auto_now_add=True)),
-                ('title', models.CharField(blank=True, max_length=500, null=True)),
-                ('actuell_payment_date', models.DateField(blank=True, null=True)),
-                ('planed_payment_date', models.DateField(blank=True, null=True)),
-                ('file', models.FileField(blank=True, null=True, upload_to='files/')),
-                ('amount', models.FloatField()),
-                ('payment_recurring', models.BooleanField(default=False)),
-                ('frequency', models.CharField(blank=True, choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly')], max_length=20, null=True)),
-                ('recurring_date', models.DateField(blank=True, null=True)),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='app.category')),
-                ('pocket', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='app.pocket')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("create_date", models.DateField(auto_now_add=True)),
+                ("title", models.CharField(blank=True, max_length=500, null=True)),
+                ("actuell_payment_date", models.DateField(blank=True, null=True)),
+                ("planed_payment_date", models.DateField(blank=True, null=True)),
+                ("file", models.FileField(blank=True, null=True, upload_to="files/")),
+                ("amount", models.FloatField()),
+                ("payment_recurring", models.BooleanField(default=False)),
+                (
+                    "frequency",
+                    models.CharField(
+                        blank=True,
+                        choices=[("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Monthly")],
+                        max_length=20,
+                        null=True,
+                    ),
+                ),
+                ("recurring_date", models.DateField(blank=True, null=True)),
+                (
+                    "category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="app.category",
+                    ),
+                ),
+                (
+                    "pocket",
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="app.pocket"),
+                ),
             ],
         ),
     ]

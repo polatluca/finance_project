@@ -6,21 +6,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('app', '0001_initial'),
+        ("app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='category',
-            name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="category",
+            name="user",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='transaction',
-            name='type',
-            field=models.CharField(blank=True, choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Transfar')], max_length=20, null=True),
+            model_name="transaction",
+            name="type",
+            field=models.CharField(
+                blank=True,
+                choices=[("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Transfar")],
+                max_length=20,
+                null=True,
+            ),
         ),
     ]
